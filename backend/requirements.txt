@@ -1,0 +1,14 @@
+# Versions below are the ones the test suite was run with (Python 3.13). Newer patch releases normally work.
+manifold3d==3.5.4
+trimesh==5.1.1
+numpy==2.5.3
+scipy==1.18.1
+networkx==3.6.1
+pillow==12.3.0
+fastapi==0.161.1
+uvicorn==0.53.0
+python-multipart==0.0.32
+pydantic==2.13.5
+httpx==0.28.1
+# only imported when REFORM3D_LLM_PROVIDER=anthropic (the default); safe to leave installed otherwise
+anthropic==2.2.0

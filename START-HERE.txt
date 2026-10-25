@@ -1,0 +1,10 @@
+ReForm3D demo (Mac)
+
+Start:  open Terminal and run
+        bash ~/Downloads/reform3d-demo/start.command
+        (or double-click start.command; if macOS blocks it, right-click > Open)
+
+First run installs packages once (a few minutes). After that it starts in seconds.
+The page opens by itself. Stop with Ctrl+C or by closing the Terminal window.
+
+backend/.env holds the API keys. Do not upload or share it. Revoke the keys after the hackathon.

@@ -1,0 +1,7 @@
+{
+  "name": "reform3d-accessibility",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": { "build": "node build.mjs" },
+  "dependencies": { "esbuild": "^0.28.2", "three": "^0.170.0" }
+}

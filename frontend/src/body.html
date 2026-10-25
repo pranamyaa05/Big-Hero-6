@@ -1,0 +1,198 @@
+<div class="bg" aria-hidden="true"></div>
+<div class="cone" aria-hidden="true"></div>
+
+<div id="loader" role="status" aria-live="polite">
+  <div class="ld">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 28 10v12l-12 7L4 22V10z"/><path d="M16 3v12m0 0L4 10m12 5 12-5m-12 5v14"/></svg>
+    <div class="bar"><i id="ldBar"></i></div>
+    <p id="ldTxt">Setting up the studio</p>
+  </div>
+</div>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+<div class="cur" id="cur" aria-hidden="true"><span>Drag</span></div>
+
+<div class="pins" id="pins" aria-hidden="true">
+  <div class="pin" id="pinWing"><i></i><span>Wing grip<small>Turns with a palm, not a pinch</small></span></div>
+  <div class="pin l" id="pinSnap"><i></i><span>Smooth cap, hard to grip</span></div>
+  <div class="pin" id="pinH"><i></i><span class="mono">Height <b id="mH">260</b> mm</span></div>
+  <div class="pin" id="pinD"><i></i><span class="mono">Diameter <b id="mD">109</b> mm</span></div>
+  <div class="pin" id="pinN"><i></i><span class="mono">Neck <b id="mN">49.8</b> mm</span></div>
+  <div class="pin l" id="pinBreak"><i></i><span>Barrier found<small>No grip, no leverage</small></span></div>
+  <div class="pin" id="pinPiece"><i></i><span>Part to replace<small>The original cap</small></span></div>
+  <div class="pin" id="pinFit"><i></i><span class="mono">Fit ok<small>Clearance 0.3 mm</small></span></div>
+  <div class="pin" id="pinEx"><i></i><span id="pinExTxt">Key feature</span></div>
+</div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="ReForm3D, back to top">
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M16 3 28 10v12l-12 7L4 22V10z" stroke="#ff6b2c"/><path d="M16 3v12m0 0L4 10m12 5 12-5m-12 5v14" stroke-width="1.8" opacity=".7"/></svg>
+    <span>ReForm<b>3D</b></span>
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#problem" data-i18n="nav.problem">Problem</a>
+    <a href="#how" data-i18n="nav.how">How it works</a>
+    <a href="#examples" data-i18n="nav.examples">Examples</a>
+  </nav>
+  <div class="sw" role="group" aria-label="Filament colour">
+    <button style="--c:#ff6b2c" data-c="#ff6b2c" aria-label="Orange filament" aria-pressed="true"></button>
+    <button style="--c:#22d1b0" data-c="#22d1b0" aria-label="Teal filament" aria-pressed="false"></button>
+    <button style="--c:#5b86ff" data-c="#5b86ff" aria-label="Blue filament" aria-pressed="false"></button>
+    <button style="--c:#f2e6b8" data-c="#f2e6b8" aria-label="Ivory filament" aria-pressed="false"></button>
+  </div>
+  <a class="btn btn-fil" href="#repair" data-i18n="nav.start">Adapt an object</a>
+</header>
+
+<main>
+  <section class="hero" id="hero" aria-label="Introduction">
+    <div class="wordmark" id="wordmark" aria-hidden="true">REFORM3D</div>
+    <div class="hero-copy">
+      <h1>Hard to use shouldn’t mean shut out.</h1>
+      <p class="lede">ReForm3D designs the small 3D-printable part that makes an object you already own usable for people with weak grip, low vision or limited mobility.<span class="lede-x"> No new product, no specialist aid.</span></p>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-fil" href="#how">Explore how it works</a>
+      <a class="btn btn-ghost" href="#repair">Adapt your object</a>
+    </div>
+    <p class="hero-credit">Team Big Hero 6 · Hack4SDG<span class="lede-x"> · Accessibility by design</span></p>
+    <p class="hero-cue">Scroll to start <i></i></p>
+  </section>
+
+  <section class="problem" id="problem">
+    <div class="wrap gut">
+      <div class="prob-main">
+        <h2 class="statement" id="statement">Everyday objects shut out millions of people: they were never made for every hand.</h2>
+        <ul class="notes">
+          <li class="reveal"><h3>One small part is in the way</h3><p>Most of these products work fine. What stops someone is one small part: a knob, a clip, a cap.</p></li>
+          <li class="reveal"><h3>Built for one kind of body</h3><p>Jar lids, taps, keys, pens and canes assume strong grip, steady hands, good sight and easy balance. For people with arthritis, tremor, low vision or reduced mobility, they become barriers.</p></li>
+          <li class="reveal"><h3>Two bad options</h3><p>Buy a whole new product or a specialist aid, or hope someone online already designed the exact part you need. Neither is fast, cheap or reliable.</p></li>
+        </ul>
+      </div>
+      <p class="question reveal">How can generative AI turn an inaccessible object into a personalized, 3D-printable aid instead of forcing people to buy something new?</p>
+    </div>
+  </section>
+
+  <section class="how" id="how" data-stage="0" aria-label="How it works">
+    <div class="how-sticky">
+      <div class="how-head">
+        <h2>How it works</h2>
+        <p>ReForm3D is an AI system that looks at an object you already own and generates a small, custom 3D-printable intervention that makes it accessible to the person using it, instead of generating new products from scratch.</p>
+      </div>
+      <div class="how-card glass" aria-live="polite">
+        <p class="how-step" id="stepNo">Step 1 of 6</p>
+        <h3 id="stepTitle">Snap a photo</h3>
+        <p class="txt" id="stepText"></p>
+        <div class="widgets">
+          <div class="wg wg0">
+            <ul class="steps-in" id="in0">
+              <li>1–3 photos of the object</li>
+              <li>Dimensions, if you know them</li>
+              <li>The problem, and who it needs to work for</li>
+              <li>Your material preference</li>
+            </ul>
+          </div>
+          <div class="wg wg1">
+            <dl class="kv" id="kvTwin">
+              <div><dt>Object</dt><dd>Water bottle</dd></div>
+              <div><dt>Height</dt><dd id="tH">260 mm</dd></div>
+              <div><dt>Body diameter</dt><dd id="tD">109 mm</dd></div>
+              <div><dt>Neck diameter</dt><dd id="tN">49.8 mm</dd></div>
+            </dl>
+          </div>
+          <div class="wg wg2">
+            <dl class="kv" id="kvAI">
+              <div><dt>Object</dt><dd>Water bottle</dd></div>
+              <div><dt>Interaction</dt><dd>Rotate + Grip</dd></div>
+              <div><dt>Barrier</dt><dd>Smooth cap, weak grip</dd></div>
+              <div><dt>Requirement</dt><dd>Fits the neck, easy for weak hands</dd></div>
+            </dl>
+            <div class="chips" id="prims" aria-label="Eight interaction primitives"><span>Grip</span><span>Rotate</span><span>Pinch</span><span>Press</span><span>Pull</span><span>Push</span><span>Squeeze</span><span>Stabilize</span></div>
+          </div>
+          <div class="wg wg3">
+            <ul class="pipe" id="pipe"><li>2D design</li><li>3D mesh (.GLB)</li><li>STL</li></ul>
+            <div class="chips" id="cands" aria-label="Candidate designs"><span>Candidate A</span><span>Candidate B</span><span>Candidate C</span></div>
+          </div>
+          <div class="wg wg4">
+            <ul class="steps-in" id="checks"><li>Closed, printable solid</li><li>Slicer check</li><li>Export STL</li></ul>
+          </div>
+          <div class="wg wg5">
+            <div class="meter"><div class="bar"><i id="prBar"></i></div><p class="mono"><span id="prLayer">Layer 0 of 225</span><span>0.2 mm layers</span></p></div>
+            <span class="rescued" id="rescued">Part printed, bottle now easy to open</span>
+          </div>
+        </div>
+      </div>
+      <ol class="how-rail" id="howRail">
+        <li><button data-s="0"><b>01</b><span>Snap</span><i></i></button></li>
+        <li><button data-s="1"><b>02</b><span>Digital twin</span><i></i></button></li>
+        <li><button data-s="2"><b>03</b><span>Understand</span><i></i></button></li>
+        <li><button data-s="3"><b>04</b><span>Generate</span><i></i></button></li>
+        <li><button data-s="4"><b>05</b><span>Check</span><i></i></button></li>
+        <li><button data-s="5"><b>06</b><span>Print &amp; fit</span><i></i></button></li>
+      </ol>
+      <div class="vf" id="vf"><i></i><i></i><i></i><i></i><em>photo_01 · tap to capture</em></div>
+      <figure class="polaroid" id="polaroid"><img id="polImg" alt="Photo of the water bottle" width="160" height="176"><figcaption>photo_01.jpg</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="examples" id="examples" aria-label="Accessibility examples">
+    <div class="gut">
+      <div class="ex-copy">
+        <h2>Small parts. Real access.</h2>
+        <p class="lede">Eight example parts for weak legs, weak hands, tremor and low vision. They show the idea. Pick one and turn it around.</p>
+        <div class="ex-list" id="exList" aria-label="Accessibility parts"></div>
+        <div class="ex-detail glass" aria-live="polite">
+          <div class="ex-head"><h3 id="exName">Cane tip</h3><p id="exHelps" class="mono"></p></div>
+          <dl>
+            <div><dt>The barrier</dt><dd id="exFail"></dd></div>
+            <div><dt>What gets printed</dt><dd id="exPrint"></dd></div>
+            <div><dt>Interaction</dt><dd><div class="chips" style="margin:0" id="exPrims"></div></dd></div>
+          </dl>
+          <div class="ex-act"><button class="btn btn-fil" type="button" id="exMake">Make this part for me</button><p class="mono" id="exMakeNote" aria-live="polite"></p></div>
+        </div>
+      </div>
+    </div>
+    <p class="drag-hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>Drag to turn the part</p>
+  </section>
+
+  <section class="repair" id="repair" aria-label="Adapt an object">
+    <div class="wrap gut repair-grid">
+      <div class="repair-stage" id="rfStage" aria-label="Design progress">
+        <div class="rf-printer" aria-hidden="true"><iframe id="rfPrinter" title="" tabindex="-1" loading="lazy"></iframe></div>
+        <div class="rf-now" id="rfNow" data-state="idle" aria-live="polite">
+          <p class="rf-now-line"><i class="rf-dot"></i><span id="rfNowLine">Printer ready. Describe a part and it starts here.</span><b class="mono" id="rfNowTime"></b></p>
+          <ol class="rf-steps" id="rfSteps"><li data-i18n="step.0">Reading</li><li data-i18n="step.1">Designing</li><li data-i18n="step.2">Checking</li><li data-i18n="step.3">Making files</li></ol>
+        </div>
+      </div>
+      <div class="repair-card glass">
+        <h2 data-i18n="repair.title">Tell us what’s hard to use.</h2>
+        <p data-i18n="repair.intro">Send a few photos and we’ll design a part that makes it easy to use. This is the input the AI reads: 1–3 photos, optional dimensions, a description of the problem and who it needs to work for, and a material preference.</p>
+        <p class="rf-status mono" id="rfStatus" aria-live="polite"></p>
+        <form class="form" id="repairForm" novalidate>
+          <label class="drop" id="drop" for="photos"><span><b data-i18n="drop.b">Drop 1–3 photos</b><span data-i18n="drop.rest"> or tap to choose</span></span><input type="file" id="photos" accept="image/*" multiple></label>
+          <div class="thumbs" id="thumbs"></div>
+          <label class="field" for="what"><span data-i18n="what.label">What’s the problem?</span><textarea id="what" data-i18n-ph="what.ph" placeholder="My grandmother can’t grip the smooth cap on her water bottle."></textarea></label>
+          <input type="hidden" id="lang" value="">
+          <div class="field-row">
+            <label class="field" for="dims"><span data-i18n="dims.label">Dimensions (optional)</span><input type="text" id="dims" data-i18n-ph="dims.ph" placeholder="e.g. neck 50 mm"></label>
+            <label class="field" for="mat"><span data-i18n="mat.label">Material preference</span><select id="mat"><option value="No preference" data-i18n="mat.0">No preference</option><option value="Durable" data-i18n="mat.1">Durable</option><option value="Flexible and grippy" data-i18n="mat.2">Flexible and grippy</option></select></label>
+          </div>
+          <label class="field" for="who"><span data-i18n="who.label">Who is it for?</span><select id="who"><option value="Anyone" data-i18n="who.0">Anyone</option><option value="Weak grip or arthritis" data-i18n="who.1">Weak grip or arthritis</option><option value="Low vision or blind" data-i18n="who.2">Low vision or blind</option><option value="Limited mobility" data-i18n="who.3">Limited mobility</option><option value="Tremor or limited dexterity" data-i18n="who.4">Tremor or limited dexterity</option></select></label>
+          <button class="btn btn-fil" type="submit" data-i18n="submit">Request my part</button>
+          <p class="note-out" id="formNote" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-big" aria-label="Adapt. Enable. Include.">Adapt. Enable. Include.</div>
+  <div class="foot-row">
+    <p><strong>ReForm3D</strong><br>Make what you have work for everyone. A more inclusive, more sustainable tomorrow.</p>
+    <p>Built by Team Big Hero 6, R. V. College of Engineering, for Hack4SDG.</p>
+    <p class="mono">Bottle model: Khronos glTF Sample Assets, CC0, by Microsoft. The wing-grip cap and the eight accessibility parts are modelled in code for this page.</p>
+  </div>
+</footer>

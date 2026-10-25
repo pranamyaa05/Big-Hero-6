@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReForm3D part designer</title>
+<meta name="description" content="Describe an everyday object that is hard to use and an AI designs a new, print-ready 3D part that fixes it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink-0: #050d0a; --ink-1: #08140f; --ink-2: #0d1f18; --ink-3: #143024; --ink-4: #1f4635;
+  --bone: #efe8d8; --bone-2: #c2bfae; --bone-3: #9aa597;
+  --line: rgba(239, 232, 216, .16); --line-2: rgba(239, 232, 216, .34);
+  --fil: #ff6b2c; --fil-ink: #1d0b03; --bad: #ff9a8a; --ok: #8fe3a9;
+  --f-display: 'Archivo', 'Arial Narrow', Arial, sans-serif;
+  --f-body: 'Instrument Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body { margin: 0; background: var(--ink-1); color: var(--bone); font: 400 1rem/1.55 var(--f-body); }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 4.2vw, 3.2rem); font-weight: 800; }
+h2 { font-size: 1.25rem; font-weight: 800; }
+h3 { font-size: 1rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--fil); }
+:focus-visible { outline: 3px solid var(--fil); outline-offset: 3px; border-radius: 4px; }
+.skip { position: absolute; left: 12px; top: -60px; background: var(--fil); color: var(--fil-ink); padding: 10px 14px; border-radius: 8px; z-index: 10; font-weight: 600; }
+.skip:focus { top: 12px; }
+
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 18px clamp(16px, 4vw, 56px); border-bottom: 1px solid var(--line); }
+.brand { font: 800 1.15rem var(--f-display); letter-spacing: .01em; }
+.brand b { color: var(--fil); }
+#serverState { font-size: .88rem; color: var(--bone-2); }
+#serverState.bad { color: var(--bad); }
+
+main { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(20px, 4vw, 56px); padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 56px) 72px; max-width: 1380px; margin: 0 auto; align-items: start; }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+
+.intro { margin-bottom: 24px; display: grid; gap: 12px; }
+.intro p { color: var(--bone-2); max-width: 52ch; }
+
+.switch { display: inline-flex; border: 1px solid var(--line-2); border-radius: 999px; padding: 4px; gap: 4px; margin-bottom: 20px; }
+.switch button { appearance: none; border: 0; background: transparent; color: var(--bone-2); font: 600 .95rem var(--f-body); padding: 9px 18px; border-radius: 999px; cursor: pointer; min-height: 44px; }
+.switch button[aria-pressed="true"] { background: var(--bone); color: var(--ink-1); }
+
+form { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); }
+details.box .inner > * { min-width: 0; }
+.field { display: grid; gap: 6px; }
+label, .lbl { font-weight: 600; }
+.hint { color: var(--bone-3); font-size: .9rem; }
+input[type=text], input[type=number], textarea, select {
+  width: 100%; background: var(--ink-2); color: var(--bone); border: 1px solid var(--line-2); border-radius: 10px; padding: 12px 14px; font: inherit; min-height: 48px; }
+textarea { min-height: 112px; resize: vertical; }
+input[type=file] { color: var(--bone-2); font: inherit; }
+input[type=file]::file-selector-button { background: var(--ink-3); color: var(--bone); border: 1px solid var(--line-2); border-radius: 8px; padding: 10px 14px; margin-right: 12px; font: 600 .95rem var(--f-body); cursor: pointer; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+.chk { display: flex; gap: 10px; align-items: center; min-height: 44px; }
+.chk input { width: 22px; height: 22px; accent-color: var(--fil); }
+.unit { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; }
+.unit span { color: var(--bone-3); min-width: 2.5rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn { appearance: none; border: 0; border-radius: 12px; padding: 14px 24px; font: 600 1.05rem var(--f-body); cursor: pointer; min-height: 52px; background: var(--fil); color: var(--fil-ink); }
+.btn.ghost { background: transparent; color: var(--bone); border: 1px solid var(--line-2); }
+.btn:disabled { opacity: .55; cursor: progress; }
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+
+.panel { border: 1px solid var(--line); background: var(--ink-2); border-radius: 18px; padding: clamp(16px, 2.5vw, 28px); display: grid; gap: 20px; }
+.empty { color: var(--bone-2); display: grid; gap: 10px; }
+.empty ul { margin: 0; padding-left: 1.2em; color: var(--bone-3); }
+
+#status { min-height: 1.6em; font-weight: 600; }
+#status.bad { color: var(--bad); }
+#status.ok { color: var(--ok); }
+.spin { display: inline-block; width: .9em; height: .9em; border: 2px solid var(--line-2); border-top-color: var(--fil); border-radius: 50%; margin-right: 8px; vertical-align: -1px; animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; border-top-color: var(--line-2); border-right-color: var(--fil); } }
+
+.view { position: relative; aspect-ratio: 4 / 3; background: radial-gradient(ellipse at 50% 35%, var(--ink-4), var(--ink-0)); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+.view canvas, .view img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.view img { object-fit: contain; }
+.view .tip { position: absolute; left: 12px; bottom: 10px; font-size: .82rem; color: var(--bone-3); background: rgba(5, 13, 10, .7); padding: 4px 10px; border-radius: 999px; }
+
+dl.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0; }
+dl.kv dt { color: var(--bone-3); }
+dl.kv dd { margin: 0; overflow-wrap: anywhere; }
+ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.warn li::marker { color: var(--fil); }
+#resultBox { display: grid; gap: 22px; }
+.downloads { display: flex; flex-wrap: wrap; gap: 10px; }
+.downloads a { display: inline-block; text-decoration: none; border: 1px solid var(--line-2); color: var(--bone); padding: 11px 16px; border-radius: 10px; font-weight: 600; min-height: 44px; }
+.downloads a.primary { background: var(--bone); color: var(--ink-1); border-color: var(--bone); }
+table { width: 100%; border-collapse: collapse; font-size: .94rem; }
+th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--bone-3); font-weight: 500; }
+.tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .82rem; border: 1px solid var(--line-2); color: var(--bone-2); }
+.tag.ok { color: var(--ok); border-color: rgba(143, 227, 169, .45); }
+.tag.bad { color: var(--bad); border-color: rgba(255, 154, 138, .5); }
+.disclaimer { color: var(--bone-3); font-size: .9rem; border-top: 1px solid var(--line); padding-top: 14px; }
+details.box { border: 1px solid var(--line); border-radius: 14px; padding: 4px 16px; background: var(--ink-2); }
+details.box[open] { padding-bottom: 16px; }
+details.box summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+details.box .inner { display: grid; gap: 14px; }
+.mview { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--ink-0); touch-action: manipulation; }
+.mview img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.mview svg { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 6rem auto auto; gap: 8px; align-items: center; }
+.mrow input[type=text], .mrow input[type=number] { min-height: 44px; padding: 8px 10px; }
+.mrow .pm { color: var(--bone-3); font-size: .88rem; white-space: nowrap; }
+.btn.small { padding: 9px 14px; min-height: 44px; font-size: .95rem; }
+.qcard { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line-2); border-radius: 12px; }
+.conf { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag.mid { color: #ffd38a; border-color: rgba(255, 211, 138, .5); }
+.tools { display: grid; gap: 16px; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (max-width: 520px) { .mrow { grid-template-columns: 1fr 6rem; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<a class="skip" href="#what">Skip to the request form</a>
+<header>
+  <div class="brand">Re<b>Form</b>3D</div>
+  <div id="serverState" role="status">Checking the server…</div>
+</header>
+
+<main>
+  <section aria-labelledby="h-make">
+    <div class="intro">
+      <h1 id="h-make">Describe it. We design the part.</h1>
+      <p>Tell us what is hard to use and who it is for. The AI designs a new part for it from scratch, checks that it can be printed, and gives you the STL files, a 3D preview and print notes.</p>
+    </div>
+
+    <div class="switch" role="group" aria-label="How do you want to start?">
+      <button type="button" id="modeDescribe" aria-pressed="true">Describe the problem</button>
+      <button type="button" id="modePick" aria-pressed="false">Use a template</button>
+    </div>
+
+    <form id="repairForm" novalidate>
+      <div class="field">
+        <label for="photos">Photos of the object (optional, up to 3)</label>
+        <input id="photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="photosHint">
+        <div class="actions"><label class="btn ghost small" for="camera" style="display:inline-flex;align-items:center">Take a photo with the camera</label>
+          <input id="camera" type="file" accept="image/*" capture="environment" hidden><span class="hint" id="photoCount"></span></div>
+        <p class="hint" id="photosHint">Used only to understand the object. Location data is stripped, and photos are not kept.</p>
+      </div>
+      <div class="field">
+        <label for="what">What is broken or hard to use?</label>
+        <textarea id="what" name="what" maxlength="2000" required aria-describedby="whatHint" placeholder="My grandmother cannot twist the smooth cap on her water bottle."></textarea>
+        <p class="hint" id="whatHint">Say what the object is and what is difficult about it.</p>
+      </div>
+      <div class="field">
+        <label for="dims">Measurements you know (optional)</label>
+        <input id="dims" name="dims" type="text" maxlength="300" placeholder="neck 50 mm" aria-describedby="dimsHint">
+        <p class="hint" id="dimsHint">Millimetres, centimetres or inches. The more exact, the better the fit.</p>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="mat">Material</label>
+          <select id="mat" name="mat">
+            <option value="">No preference</option>
+            <option>Durable</option>
+            <option>Flexible and grippy</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="who">Who is it for?</label>
+          <select id="who" name="who">
+            <option value="">Anyone</option>
+            <option>Weak grip or arthritis</option>
+            <option>Low vision or blind</option>
+            <option>Limited mobility</option>
+            <option>Tremor or limited dexterity</option>
+          </select>
+        </div>
+      </div>
+      <details class="box" id="measureBox">
+        <summary>Measure it (better fit)</summary>
+        <div class="inner">
+          <p class="hint">Exact sizes are what make a part fit. Type what you measured with a ruler, or measure from a photo: print the
+            <a href="/api/v1/marker.svg" target="_blank" rel="noopener">measuring sheet</a> at 100 %, put the object next to the black square, and photograph it from straight above.</p>
+          <div class="field">
+            <label for="mphoto">Photo with the measuring sheet</label>
+            <input id="mphoto" type="file" accept="image/*" capture="environment">
+          </div>
+          <div id="mstage" hidden style="display:grid;gap:10px">
+            <p class="hint" id="mhelp">Click the two ends of a distance, for example across the bottle neck. Add as many as you need.</p>
+            <div class="mview" id="mview"><img id="mimg" alt="Your photo with the measuring sheet. Click two points to measure between them."><svg id="msvg" aria-hidden="true"></svg></div>
+            <div class="actions"><button class="btn small" type="button" id="mgo" disabled>Measure</button><button class="btn ghost small" type="button" id="mclear">Clear points</button></div>
+            <p class="hint" id="mmsg" role="status"></p>
+          </div>
+          <div id="mlist" style="display:grid;gap:8px"></div>
+          <div class="actions"><button class="btn ghost small" type="button" id="maddTyped">Add a size I measured with a ruler</button></div>
+        </div>
+      </details>
+      <label class="chk"><input type="checkbox" id="askFirst" checked> Let the AI ask me a few questions first</label>
+      <div id="questions" hidden style="display:grid;gap:12px"></div>
+      <div class="actions">
+        <button class="btn" type="submit" id="goDescribe">Design my part</button>
+        <button class="btn ghost" type="button" id="skipQ" hidden>Skip the questions</button>
+      </div>
+    </form>
+
+    <form id="partForm" hidden novalidate>
+      <div class="field">
+        <label for="partSel">Ready-made template</label>
+        <select id="partSel"></select>
+        <p class="hint" id="partInfo"></p>
+      </div>
+      <div id="paramFields" style="display:grid;gap:18px"></div>
+      <div class="actions">
+        <button class="btn" type="submit" id="goPart">Make this template</button>
+        <button class="btn ghost" type="button" id="resetParams">Reset to defaults</button>
+      </div>
+    </form>
+  </section>
+
+  <section aria-labelledby="h-result" aria-live="polite">
+    <div class="panel">
+      <h2 id="h-result">Your part</h2>
+      <p id="status"></p>
+      <div id="empty" class="empty">
+        <p>Your preview, files and print notes appear here.</p>
+        <ul>
+          <li>A new design takes one to three minutes: the AI writes it, the server checks it, and the AI reviews a picture of its own result.</li>
+          <li>Rotate the 3D preview by dragging it, zoom with the scroll wheel or a pinch.</li>
+          <li>Every size shown is in millimetres.</li>
+        </ul>
+      </div>
+      <div id="planBox" hidden></div>
+      <div id="resultBox" hidden>
+        <div class="view" id="view" role="img" aria-label="3D preview of the generated part"></div>
+        <div class="downloads" id="downloads"></div>
+        <div id="piecesBox"></div>
+        <div id="dimsBox"></div>
+        <div id="notesBox" style="display:grid;gap:18px"></div>
+        <div class="tools" id="tools" hidden>
+          <form id="tuneForm" hidden novalidate style="display:grid;gap:12px">
+            <h3>Adjust sizes (instant, no AI)</h3>
+            <p class="hint">After a fit test: a tight fit needs a bigger clearance, a loose one a smaller clearance. Other sizes rebuild the same design.</p>
+            <div id="tuneFields" class="row"></div>
+            <div class="actions"><button class="btn small" type="submit" id="goTune">Rebuild with these sizes</button></div>
+          </form>
+          <form id="reviseForm" hidden novalidate style="display:grid;gap:10px">
+            <h3><label for="feedback">Ask the AI to change it</label></h3>
+            <textarea id="feedback" maxlength="800" placeholder="Make the handle 10 mm longer and add a hole for a lanyard." style="min-height:80px"></textarea>
+            <div class="actions"><button class="btn small" type="submit" id="goRevise">Change the design</button></div>
+          </form>
+        </div>
+        <p class="disclaimer" id="disclaimer"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/web/vendor/three.min.js"></script>
+<script src="/web/vendor/GLTFLoader.js"></script>
+<script src="/web/vendor/OrbitControls.js"></script>
+<script src="/web/reform3d-client.js"></script>
+<script>
+(() => {
+  const rf = new ReForm3D('');           // same origin; use new ReForm3D('https://your-backend') from another site
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const STATES = { queued: 'Waiting for a free worker…', planning: 'Reading your request…', designing: 'The AI is designing your part. This takes a minute or two…', building: 'Building the files and checking they can be printed…' };
+  let parts = [], busy = false, viewer = null, current = null, answersReady = null;
+  const measurements = [];          // {label, value_mm, plusminus_mm, source, confirmed}
+
+  // ------------------------------------------------------------ status helpers
+  function status(text, kind = '', spinner = false) {
+    const el = $('status');
+    el.className = kind;
+    el.innerHTML = (spinner ? '<span class="spin" aria-hidden="true"></span>' : '') + esc(text);
+  }
+  function setBusy(on) {
+    busy = on;
+    ['goDescribe', 'goPart', 'resetParams', 'goTune', 'goRevise', 'skipQ'].forEach((id) => { $(id).disabled = on; });
+  }
+  function showOnly(which) {                 // 'empty' | 'plan' | 'result'
+    $('empty').hidden = which !== 'empty';
+    $('planBox').hidden = which !== 'plan';
+    $('resultBox').hidden = which !== 'result';
+  }
+
+  // ------------------------------------------------------------ camera: add a photo taken now to the photo list
+  const photoCount = () => { const n = $('photos').files.length; $('photoCount').textContent = n ? `${n} photo${n === 1 ? '' : 's'} attached` : ''; };
+  $('photos').onchange = photoCount;
+  $('camera').onchange = () => {
+    const shot = $('camera').files[0];
+    if (!shot) return;
+    try {
+      const dt = new DataTransfer();
+      Array.from($('photos').files).slice(0, 2).forEach((f) => dt.items.add(f));
+      dt.items.add(new File([shot], shot.name || `camera-${Date.now()}.jpg`, { type: shot.type || 'image/jpeg' }));
+      $('photos').files = dt.files;
+    } catch (e) { status('This browser cannot add camera photos to the list; use the photo picker instead.', 'bad'); }
+    $('camera').value = '';
+    photoCount();
+  };
+
+  // ------------------------------------------------------------ measuring from a photo of the printed marker
+  let mfile = null, pts = [], segs = [];
+  function drawPoints() {
+    const img = $('mimg'), svg = $('msvg');
+    const W = img.naturalWidth || 1, H = img.naturalHeight || 1, r = Math.max(W, H) / 160;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const seg = (a, b, i) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ff6b2c" stroke-width="${r / 2}"/>` +
+      `<text x="${(a[0] + b[0]) / 2 + r}" y="${(a[1] + b[1]) / 2 - r}" fill="#fff" stroke="#000" stroke-width="${r / 6}" font-size="${r * 3}" font-weight="700">${i + 1}</text>`;
+    const dot = (p) => `<circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="#ff6b2c" stroke="#fff" stroke-width="${r / 3}"/>`;
+    svg.innerHTML = segs.map((s, i) => seg(s[0], s[1], i)).join('') + segs.flat().concat(pts).map(dot).join('');
+    $('mgo').disabled = busy || !segs.length;
+  }
+  $('mphoto').onchange = () => {
+    mfile = $('mphoto').files[0];
+    pts = []; segs = [];
+    if (!mfile) { $('mstage').hidden = true; return; }
+    $('mimg').onload = () => { drawPoints(); $('mmsg').textContent = ''; };
+    $('mimg').src = URL.createObjectURL(mfile);
+    $('mstage').hidden = false;
+  };
+  $('msvg').addEventListener('click', (ev) => {
+    const img = $('mimg'), box = img.getBoundingClientRect();
+    const p = [Math.round((ev.clientX - box.left) * img.naturalWidth / box.width), Math.round((ev.clientY - box.top) * img.naturalHeight / box.height)];
+    pts.push(p);
+    if (pts.length === 2) { segs.push(pts); pts = []; }
+    if (segs.length > 12) segs.shift();
+    drawPoints();
+  });
+  $('mclear').onclick = () => { pts = []; segs = []; drawPoints(); };
+  $('mgo').onclick = async () => {
+    $('mmsg').textContent = 'Measuring…';
+    try {
+      const r = await rf.measure(mfile, segs);
+      r.measurements.forEach((m, i) => measurements.push({ label: `distance ${measurements.length + 1}`, value_mm: m.mm, plusminus_mm: m.plusminus_mm, source: 'measured', confirmed: false }));
+      $('mmsg').textContent = (r.warnings.join(' ') + ' Name each distance and tick it once you have checked it.').trim();
+      segs = []; drawPoints(); renderMeasurements();
+    } catch (e) { $('mmsg').textContent = e.message; }
+  };
+  $('maddTyped').onclick = () => { measurements.push({ label: '', value_mm: '', plusminus_mm: 0, source: 'typed', confirmed: true }); renderMeasurements(true); };
+  function renderMeasurements(focusLast = false) {
+    $('mlist').innerHTML = measurements.map((m, i) => `<div class="mrow">
+        <input type="text" maxlength="60" data-i="${i}" data-k="label" value="${esc(m.label)}" aria-label="What size ${i + 1} is" placeholder="e.g. bottle neck diameter">
+        <input type="number" inputmode="decimal" step="0.1" min="0" data-i="${i}" data-k="value_mm" value="${esc(m.value_mm)}" aria-label="Size ${i + 1} in millimetres">
+        <span class="pm">${m.source === 'measured' ? `mm ±${m.plusminus_mm}` : 'mm, ruler'}</span>
+        <span style="display:flex;gap:6px;align-items:center">${m.source === 'measured' ? `<label class="chk" style="min-height:0"><input type="checkbox" data-i="${i}" data-k="confirmed"${m.confirmed ? ' checked' : ''}> checked</label>` : ''}
+        <button type="button" class="btn ghost small" data-del="${i}" aria-label="Remove size ${i + 1}">Remove</button></span></div>`).join('');
+    if (focusLast) { const els = $('mlist').querySelectorAll('input[data-k=label]'); if (els.length) els[els.length - 1].focus(); }
+  }
+  $('mlist').addEventListener('input', (ev) => {
+    const el = ev.target, i = +el.dataset.i, k = el.dataset.k;
+    if (!k) return;
+    measurements[i][k] = k === 'confirmed' ? el.checked : el.value;
+  });
+  $('mlist').addEventListener('click', (ev) => { const d = ev.target.dataset.del; if (d !== undefined) { measurements.splice(+d, 1); renderMeasurements(); } });
+  const usableMeasurements = () => measurements.filter((m) => m.confirmed && String(m.label).trim() && Number(m.value_mm) > 0)
+    .map((m) => ({ label: String(m.label).trim().slice(0, 60), value_mm: Number(m.value_mm), plusminus_mm: Number(m.plusminus_mm) || 0, source: m.source }));
+
+  // ------------------------------------------------------------ clarifying questions
+  function renderQuestions(qs) {
+    const box = $('questions');
+    box.innerHTML = `<h3>A few questions first</h3><p class="hint">Answers make the design fit better. The suggested answer is filled in; change it or leave it.</p>` +
+      qs.map((q) => {
+        const id = 'ans_' + q.id;
+        const input = q.kind === 'choice'
+          ? `<select id="${id}" data-q="${esc(q.question)}">${q.options.map((o) => `<option${o === q.suggestion ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`
+          : q.kind === 'number'
+            ? `<div class="unit"><input type="number" inputmode="decimal" step="0.1" id="${id}" data-q="${esc(q.question)}" value="${esc((q.suggestion.match(/[\d.]+/) || [''])[0])}"><span>${esc(q.unit || 'mm')}</span></div>`
+            : `<input type="text" maxlength="300" id="${id}" data-q="${esc(q.question)}" value="${esc(q.suggestion)}">`;
+        return `<div class="qcard"><label for="${id}">${esc(q.question)}</label>${input}${q.why ? `<p class="hint">${esc(q.why)}</p>` : ''}</div>`;
+      }).join('');
+    box.hidden = false;
+    $('skipQ').hidden = false;
+    $('goDescribe').textContent = 'Design with these answers';
+    const first = box.querySelector('input,select'); if (first) first.focus();
+  }
+  function collectAnswers() {
+    return Array.from($('questions').querySelectorAll('[data-q]')).map((el) => {
+      const unit = el.closest('.unit') ? ' ' + (el.parentElement.querySelector('span') || {}).textContent : '';
+      return { question: el.dataset.q.slice(0, 300), answer: (el.value ? el.value + unit : '').slice(0, 300) };
+    });
+  }
+  function resetQuestions() { answersReady = null; $('questions').hidden = true; $('questions').innerHTML = ''; $('skipQ').hidden = true; $('goDescribe').textContent = 'Design my part'; }
+  ['what', 'dims', 'who', 'mat'].forEach((id) => $(id).addEventListener('change', resetQuestions));
+
+  // ------------------------------------------------------------ mode switch
+  function setMode(describe) {
+    $('modeDescribe').setAttribute('aria-pressed', String(describe));
+    $('modePick').setAttribute('aria-pressed', String(!describe));
+    $('repairForm').hidden = !describe;
+    $('partForm').hidden = describe;
+    if (!describe && !$('paramFields').children.length) renderParams();
+  }
+  $('modeDescribe').onclick = () => setMode(true);
+  $('modePick').onclick = () => setMode(false);
+
+  // ------------------------------------------------------------ parameter form
+  function fieldFor(p, value) {
+    const id = 'p_' + p.name, hint = p.help ? `<p class="hint" id="${id}_h">${esc(p.help)}</p>` : '', d = p.help ? ` aria-describedby="${id}_h"` : '';
+    if (p.kind === 'bool')
+      return `<div class="field"><label class="chk"><input type="checkbox" id="${id}" data-name="${p.name}" data-kind="bool"${value ? ' checked' : ''}${d}> ${esc(p.label)}</label>${hint}</div>`;
+    if (p.kind === 'enum')
+      return `<div class="field"><label for="${id}">${esc(p.label)}</label><select id="${id}" data-name="${p.name}" data-kind="enum"${d}>${p.choices.map((c) => `<option${c === value ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select>${hint}</div>`;
+    if (p.kind === 'text')
+      return `<div class="field"><label for="${id}">${esc(p.label)}</label><input type="text" id="${id}" data-name="${p.name}" data-kind="text" maxlength="${p.max_length || 60}" value="${esc(value)}"${d}>${hint}</div>`;
+    const step = p.kind === 'int' ? 1 : 'any';
+    return `<div class="field"><label for="${id}">${esc(p.label)}</label><div class="unit"><input type="number" inputmode="decimal" id="${id}" data-name="${p.name}" data-kind="${p.kind}" min="${p.min}" max="${p.max}" step="${step}" value="${value}"${d}><span>${esc(p.unit)}</span></div>${hint}<p class="hint">Allowed range ${p.min} to ${p.max}${p.unit ? ' ' + esc(p.unit) : ''}. Values outside it are adjusted and reported.</p></div>`;
+  }
+  function renderParams(values = {}) {
+    const part = parts.find((x) => x.id === $('partSel').value);
+    if (!part) return;
+    $('partInfo').textContent = `${part.summary} Helps: ${part.helps}.`;
+    $('paramFields').innerHTML = part.params.map((p) => fieldFor(p, p.name in values ? values[p.name] : p.default)).join('');
+  }
+  function collectParams() {
+    const out = {};
+    $('paramFields').querySelectorAll('[data-name]').forEach((el) => {
+      const k = el.dataset.kind;
+      out[el.dataset.name] = k === 'bool' ? el.checked : (k === 'float' || k === 'int') ? (el.value === '' ? undefined : Number(el.value)) : el.value;
+    });
+    Object.keys(out).forEach((k) => out[k] === undefined && delete out[k]);
+    return out;
+  }
+  $('partSel').onchange = () => renderParams();
+  $('resetParams').onclick = () => renderParams();
+
+  // ------------------------------------------------------------ 3D viewer (three.js r128, vendored in /web/vendor)
+  function disposeViewer() { if (viewer) { viewer.stop(); viewer = null; } $('view').innerHTML = ''; }
+  function showViewer(job) {
+    disposeViewer();
+    const box = $('view'), f = job.files || {};
+    const fallback = () => { box.innerHTML = f.preview ? `<img alt="Preview image of the generated part" src="${esc(f.preview)}">` : '<p style="padding:20px">No preview available.</p>'; };
+    if (!window.THREE || !THREE.GLTFLoader || !f.glb) return fallback();
+    try {
+      const w = box.clientWidth || 600, h = box.clientHeight || 450;
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+      renderer.setSize(w, h);
+      const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, w / h, 0.1, 5000);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x1f4635, 0.9));
+      const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(1, 2, 1.5); scene.add(key);
+      const controls = new THREE.OrbitControls(cam, renderer.domElement); controls.enableDamping = true;
+      box.appendChild(renderer.domElement);
+      box.insertAdjacentHTML('beforeend', '<div class="tip">Drag to rotate</div>');
+      let raf = 0, alive = true;
+      new THREE.GLTFLoader().load(f.glb, (gltf) => {
+        const model = gltf.scene;
+        model.traverse((o) => { if (o.isMesh) { o.material = new THREE.MeshStandardMaterial({ color: 0xff6b2c, roughness: 0.55, metalness: 0.05, flatShading: true, side: THREE.DoubleSide }); } });
+        scene.add(model);
+        const bb = new THREE.Box3().setFromObject(model), c = bb.getCenter(new THREE.Vector3()), s = bb.getSize(new THREE.Vector3());
+        const r = Math.max(s.x, s.y, s.z) || 50;
+        controls.target.copy(c);
+        cam.position.set(c.x + r * 1.1, c.y + r * 0.9, c.z + r * 1.6);
+        cam.near = r / 100; cam.far = r * 50; cam.updateProjectionMatrix();
+      }, undefined, () => { viewer && viewer.stop(); viewer = null; fallback(); });
+      const loop = () => { if (!alive) return; raf = requestAnimationFrame(loop); controls.update(); renderer.render(scene, cam); };
+      loop();
+      const onResize = () => { const W = box.clientWidth, H = box.clientHeight; if (!W || !H) return; renderer.setSize(W, H); cam.aspect = W / H; cam.updateProjectionMatrix(); };
+      addEventListener('resize', onResize);
+      viewer = { stop() { alive = false; cancelAnimationFrame(raf); removeEventListener('resize', onResize); controls.dispose(); renderer.dispose(); } };
+    } catch (e) { fallback(); }
+  }
+
+  // ------------------------------------------------------------ rendering results
+  const list = (items) => (items && items.length ? `<ul class="plain">${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : '');
+  const section = (title, items, cls = '') => (items && items.length ? `<div class="${cls}"><h3>${esc(title)}</h3>${list(items)}</div>` : '');
+  const fmtParams = (o) => Object.entries(o || {}).map(([k, v]) => `${k}: ${v}`).join(', ');
+
+  function planHtml(plan, heading = 'What we understood') {
+    if (!plan) return '';
+    if (!plan.part_id) return `<div style="display:grid;gap:10px"><h3>${esc(heading)}</h3><p>${esc(plan.rationale || '')}</p>${list(plan.warnings)}</div>`;
+    const resolved = plan.resolved_params || plan.params || {};
+    return `<div style="display:grid;gap:12px"><h3>${esc(heading)}</h3>
+      <dl class="kv"><dt>Part</dt><dd>${esc(plan.part_name || (parts.find((x) => x.id === plan.part_id) || {}).name || plan.part_id)}</dd>
+      <dt>Why</dt><dd>${esc(plan.rationale || '')}</dd>
+      <dt>Chosen by</dt><dd>${plan.source === 'llm' ? 'the AI planner' : plan.source === 'explicit' ? 'you' : 'the offline keyword planner'}</dd>
+      <dt>Values</dt><dd>${esc(fmtParams(resolved))}</dd></dl>
+      ${section('Please measure', plan.missing_measurements)}${section('Adjusted', plan.param_notes)}${section('Check', plan.warnings, 'warn')}</div>`;
+  }
+
+  const SRC = { user: ['you gave it', 'ok'], measured: ['measured', 'ok'], derived: ['computed', 'mid'], assumed: ['AI estimate: check it', 'bad'] };
+  const CONF = { high: ['High', 'ok'], medium: ['Medium', 'mid'], low: ['Low', 'bad'], unknown: ['Not known', 'mid'] };
+  function dimsHtml(d) {
+    if (!d || !d.key_dimensions) return '';
+    const c = d.fit_confidence || { level: 'unknown', why: '' }, [cl, cc] = CONF[c.level] || CONF.unknown;
+    const rows = d.key_dimensions.map((k) => { const [t, cls] = SRC[k.source] || SRC.assumed;
+      return `<tr><th scope="row">${esc(k.label)}${k.fits_object ? ' <span class="hint">(must fit)</span>' : ''}</th><td>${esc(k.value_mm)} mm</td><td><span class="tag ${cls}">${esc(t)}</span>${k.note ? `<br><span class="hint">${esc(k.note)}</span>` : ''}</td></tr>`; }).join('');
+    return `<div style="display:grid;gap:10px"><div class="conf"><h3>Fit confidence</h3><span class="tag ${cc}">${cl}</span></div><p class="hint">${esc(c.why)}</p>
+      ${rows ? `<table><caption class="hint" style="text-align:left;padding-bottom:6px">Key sizes and where they came from</caption><thead><tr><th scope="col">Size</th><th scope="col">Value</th><th scope="col">Source</th></tr></thead><tbody>${rows}</tbody></table>` : ''}</div>`;
+  }
+
+  function designHtml(d, plan) {
+    const fixes = (d.log || []).filter((x) => x.outcome.startsWith('failed') || x.outcome.startsWith('warnings')).length;
+    const how = `${d.attempts} design pass${d.attempts === 1 ? '' : 'es'}${fixes ? `, ${fixes} problem${fixes === 1 ? '' : 's'} found and fixed automatically` : ''}${d.reviewed ? ', checked against its own result' : ''}.${d.models && d.models.length ? ` Designed by ${d.models.join(' and ')}.` : ''}`;
+    const origin = d.cached_from ? 'This is the design made earlier for the same request (no AI call). Use "Change the design" or ask again with different words for a new one.'
+      : d.tuned_from ? 'Rebuilt with your sizes, no AI involved.' : d.revised_from ? `Changed as you asked: "${d.feedback || ''}".` : '';
+    return `<div style="display:grid;gap:12px"><h3>How the AI understood it</h3><p>${esc(d.understanding || '')}</p>${origin ? `<p class="hint">${esc(origin)}</p>` : ''}${section('Sizes it assumed. Check these against the real object.', d.assumptions)}<p class="hint">${esc(how)}</p></div>`;
+  }
+
+  function renderResult(job) {
+    const r = job.result, f = job.files;
+    showOnly('result');
+    $('planBox').hidden = false;
+    current = job;
+    $('planBox').innerHTML = r.design ? designHtml(r.design, job.plan) : planHtml(Object.assign({ part_name: r.part_name }, job.plan, { resolved_params: r.params }));
+    $('dimsBox').innerHTML = r.design ? dimsHtml(r.design) : '';
+    showViewer(job);
+    const stls = f.stl.map((s) => `<a href="${esc(s.url)}" download>${esc(s.piece)}.stl</a>`).join('');
+    const est = r.estimate ? `<p class="hint" style="flex-basis:100%">${r.estimate.source ? `Sliced with ${esc(r.estimate.source)}: about ${esc(r.estimate.filament_g)} g of ${esc(r.estimate.material)} (${esc(r.estimate.support_g)} g of it support), about ${esc(r.estimate.print_minutes)} minutes to print` : `Rough estimate: about ${esc(r.estimate.filament_g)} g of ${esc(r.estimate.material)}, about ${esc(r.estimate.print_minutes)} minutes to print`}${r.fit_test ? `; the fit test takes about ${esc(r.fit_test.print_minutes)} minutes` : ''}. Your own slicer settings will differ a little.</p>` : '';
+    $('downloads').innerHTML = `<a class="primary" href="${esc(f.zip)}" download>Download everything (.zip)</a>${stls}${f.fit_test ? `<a href="${esc(f.fit_test)}" download>Fit test (print this first)</a>` : ''}${f.drawing ? `<a href="${esc(f.drawing)}" target="_blank" rel="noopener">Dimensioned drawing</a>` : ''}<a href="${esc(f.readme)}" target="_blank" rel="noopener">Print notes</a>${f.code ? `<a href="${esc(f.code)}" download>CAD code</a>` : ''}${est}`;
+    const params = (r.design && r.design.parameters) || [];
+    $('tuneFields').innerHTML = params.map((p) => `<div class="field"><label for="t_${esc(p.name)}">${esc(p.name.replace(/_/g, ' '))}</label><div class="unit"><input type="number" inputmode="decimal" step="any" id="t_${esc(p.name)}" data-name="${esc(p.name)}" value="${esc(p.value ?? p.default)}"><span>${/angle|deg|count|n_|number/.test(p.name) ? '' : 'mm'}</span></div></div>`).join('');
+    $('tuneForm').hidden = !params.length;
+    $('reviseForm').hidden = !(r.design && serverDesign);
+    $('tools').hidden = $('tuneForm').hidden && $('reviseForm').hidden;
+    $('piecesBox').innerHTML = `<table><caption class="hint" style="text-align:left;padding-bottom:6px">Print checks, per piece</caption><thead><tr><th scope="col">Piece</th><th scope="col">Size (mm)</th><th scope="col">Volume</th><th scope="col">Checks</th></tr></thead><tbody>${r.pieces.map((p) =>
+      `<tr><th scope="row">${esc(p.name)}</th><td>${p.size_mm.join(' × ')}</td><td>${p.volume_cm3} cm³</td><td><span class="tag ${p.ok ? 'ok' : 'bad'}">${p.ok ? 'closed solid' : 'problem'}</span>${p.warnings.length ? '<br>' + esc(p.warnings.join(' ')) : ''}${p.errors.length ? '<br>' + esc(p.errors.join(' ')) : ''}</td></tr>`).join('')}</tbody></table>`;
+    $('notesBox').innerHTML = section('How to print it', r.print_notes) + section('Before you print: fit', r.fit_notes) + section('About this part', r.notes) + section('Warnings', r.warnings, 'warn');
+    $('disclaimer').textContent = r.disclaimer || '';
+  }
+
+  // ------------------------------------------------------------ actions
+  async function run(fn) {
+    if (busy) return;
+    setBusy(true); showOnly('empty'); disposeViewer(); status('Sending your request…', '', true);
+    try {
+      const job = await fn((s) => status(STATES[s] || 'Working…', '', true));
+      status(job.result.pieces.length === 1 ? 'Your part is ready.' : 'Your ' + job.result.pieces.length + ' pieces are ready.', 'ok');
+      renderResult(job);
+    } catch (e) {
+      status(e.message || 'Something went wrong. Try again.', 'bad');
+    } finally { setBusy(false); }
+  }
+
+  let serverDesign = false;
+  async function designNow(answers) {
+    const meas = usableMeasurements();
+    await run((onStatus) => rf.generateFromForm($('repairForm'), { onStatus, measurements: meas, answers }));
+    resetQuestions();
+  }
+  $('repairForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (busy) return;
+    if (!$('what').value.trim() && !$('dims').value.trim()) { status('Tell us what is broken or hard to use first.', 'bad'); $('what').focus(); return; }
+    if (answersReady) return designNow(collectAnswers());
+    if ($('askFirst').checked && serverDesign) {
+      setBusy(true); status('Thinking about what to ask…', '', true);
+      try {
+        const q = await rf.clarify($('repairForm'), { measurements: usableMeasurements() });
+        setBusy(false);
+        if (q.questions && q.questions.length) { answersReady = true; status('Answer these, then press "Design with these answers".'); renderQuestions(q.questions); return; }
+      } catch (e) { setBusy(false); }
+    }
+    designNow([]);
+  });
+  $('skipQ').onclick = () => designNow([]);
+
+  $('tuneForm').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    if (!current) return;
+    const vals = {};
+    $('tuneFields').querySelectorAll('[data-name]').forEach((el) => { if (el.value !== '') vals[el.dataset.name] = Number(el.value); });
+    run((onStatus) => rf.tune(current.id, vals, { onStatus }));
+  });
+  $('reviseForm').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const fb = $('feedback').value.trim();
+    if (!current || fb.length < 3) { status('Say what should change first.', 'bad'); $('feedback').focus(); return; }
+    run((onStatus) => rf.revise(current.id, fb, { onStatus })).then(() => { $('feedback').value = ''; });
+  });
+
+  $('partForm').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    run((onStatus) => rf.build($('partSel').value, collectParams(), { onStatus }));
+  });
+
+  // ------------------------------------------------------------ start up
+  (async () => {
+    try {
+      const [h, p] = await Promise.all([rf.health(), rf.parts()]);
+      parts = p;
+      $('partSel').innerHTML = parts.map((x) => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+      $('serverState').textContent = h.design ? `AI design is on (${h.provider === 'pool' && h.pool ? h.pool.models.length + ' models' : h.provider}). ${h.templates} ready-made templates are also available.` : `AI design is off: no model is configured on this server, so only the ${h.templates} ready-made templates work.`;
+      if (!h.design) $('serverState').className = 'bad';
+      serverDesign = !!h.design;
+    } catch (e) {
+      $('serverState').textContent = 'The server is not reachable right now.';
+      $('serverState').className = 'bad';
+    }
+  })();
+})();
+</script>
+</body>
+</html>
